@@ -109,15 +109,15 @@ module Quantum_Circuit (
     FixedPoint_Multiply mult8 (.A(sub_c01c11_im), .B(FP_INV_SQRT2), .result(h_c11_im));
 
     // Stage 2: Apply CNOT
-    assign cnot_c00_re = h_c00_re;
-    assign cnot_c00_im = h_c00_im;
-    assign cnot_c01_re = h_c01_re;
-    assign cnot_c01_im = h_c01_im;
+    assign cnot_c00_re = c00_re_reg;
+    assign cnot_c00_im = c00_im_reg;
+    assign cnot_c01_re = c01_re_reg;
+    assign cnot_c01_im = c01_im_reg;
 
-    assign cnot_c10_re = h_c11_re; // |10> becomes |11>
-    assign cnot_c10_im = h_c11_im;
-    assign cnot_c11_re = h_c10_re; // |11> becomes |10>
-    assign cnot_c11_im = h_c10_im;
+    assign cnot_c10_re = c11_re_reg; // |10> <-> |11> swap to flip target (LSB) when control (MSB)=1
+    assign cnot_c10_im = c11_im_reg;
+    assign cnot_c11_re = c10_re_reg;
+    assign cnot_c11_im = c10_im_reg;
 
     // Next state assignments based on current state
     // apply CNOT when in S_CNOT. Otherwise hold current registers.
