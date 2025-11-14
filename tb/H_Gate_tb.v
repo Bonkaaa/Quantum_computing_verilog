@@ -113,4 +113,4 @@ endmodule
 // 7. So sánh kết quả đầu ra với giá trị mong đợi và in kết quả kiểm tra
 // 8. Kết thúc testbench sau khi hoàn thành các kiểm tra
 
-// Run cmd: powershell -ExecutionPolicy Bypass -File .\scripts\run_h_gate_tb.ps1
+// Run cmd: powershell -ExecutionPolicy Bypass -File .\scripts\run_h_gate_test.ps1

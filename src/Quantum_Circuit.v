@@ -32,25 +32,28 @@ module Quantum_Circuit (
                        c10_re_next, c10_im_next, c11_re_next, c11_im_next;
 
     // FSM
-    reg [1:0] state;
+    reg [1:0] state, state_next;
     localparam S_INIT = 2'b00;
     localparam S_HADAMARD = 2'b01; // Apply Hadamard to qubit 0
     localparam S_CNOT = 2'b10; // Apply CNOT with qubit 0 as control and qubit 1 as target
     localparam S_DONE = 2'b11; // Final state
 
     // State Transition
+    // Next-state logic
+    always @* begin
+        case (state)
+            S_INIT:     state_next = start ? S_HADAMARD : S_INIT;
+            S_HADAMARD: state_next = S_CNOT;
+            S_CNOT:     state_next = S_DONE;
+            S_DONE:     state_next = start ? S_DONE : S_INIT;
+            default:    state_next = S_INIT;
+        endcase
+    end
+
+    // State register
     always @(posedge clk or posedge reset) begin
-        if (reset) begin
-            state <= S_INIT;
-        end else begin
-            case (state)
-                S_INIT: if (start) state <= S_HADAMARD;
-                S_HADAMARD: state <= S_CNOT;
-                S_CNOT: state <= S_DONE;
-                S_DONE: if (!start) state <= S_INIT;
-                default: state <= S_INIT;
-            endcase
-        end
+        if (reset) state <= S_INIT;
+        else       state <= state_next;
     end
 
     // State Register Update
@@ -81,27 +84,29 @@ module Quantum_Circuit (
                         cnot_c10_re, cnot_c10_im, cnot_c11_re, cnot_c11_im;
 
     // Stage 1: Apply Hadamard
-    wire [15:0] add_c00c10_re, add_c00c10_im, sub_c00c10_re, sub_c00c10_im;
-    wire [15:0] add_c01c11_re, add_c01c11_im, sub_c01c11_re, sub_c01c11_im;
+    wire signed [15:0] add_c00c10_re, add_c00c10_im, sub_c00c10_re, sub_c00c10_im;
+    wire signed [15:0] add_c01c11_re, add_c01c11_im, sub_c01c11_re, sub_c01c11_im;
 
-    FixedPoint_Add add1 (c00_re_reg, c10_re_reg, 0, add_c00c10_re);
-    FixedPoint_Add add2 (c00_im_reg, c10_im_reg, 0, add_c00c10_im);
-    FixedPoint_Add sub1 (c00_re_reg, c10_re_reg, 1, sub_c00c10_re);
-    FixedPoint_Add sub2 (c00_im_reg, c10_im_reg, 1, sub_c00c10_im);
-    FixedPoint_Add add3 (c01_re_reg, c11_re_reg, 0, add_c01c11_re);
-    FixedPoint_Add add4 (c01_im_reg, c11_im_reg, 0, add_c01c11_im);
-    FixedPoint_Add sub3 (c01_re_reg, c11_re_reg, 1, sub_c01c11_re);
-    FixedPoint_Add sub4 (c01_im_reg, c11_im_reg, 1, sub_c01c11_im);
+    
+    FixedPoint_Add add1 (.A(c00_re_reg), .B(c10_re_reg), .sub_en(1'b0), .Sum(add_c00c10_re)); 
+    FixedPoint_Add add2 (.A(c00_im_reg), .B(c10_im_reg), .sub_en(1'b0), .Sum(add_c00c10_im)); 
+    FixedPoint_Add sub1 (.A(c00_re_reg), .B(c10_re_reg), .sub_en(1'b1), .Sum(sub_c00c10_re)); 
+    FixedPoint_Add sub2 (.A(c00_im_reg), .B(c10_im_reg), .sub_en(1'b1), .Sum(sub_c00c10_im)); 
+
+    FixedPoint_Add add3 (.A(c01_re_reg), .B(c11_re_reg), .sub_en(1'b0), .Sum(add_c01c11_re)); 
+    FixedPoint_Add add4 (.A(c01_im_reg), .B(c11_im_reg), .sub_en(1'b0), .Sum(add_c01c11_im)); 
+    FixedPoint_Add sub3 (.A(c01_re_reg), .B(c11_re_reg), .sub_en(1'b1), .Sum(sub_c01c11_re)); 
+    FixedPoint_Add sub4 (.A(c01_im_reg), .B(c11_im_reg), .sub_en(1'b1), .Sum(sub_c01c11_im));
 
     // Multiply by 1/sqrt(2)
-    FixedPoint_Multiply mult1 (add_c00c10_re, FP_INV_SQRT2, h_c00_re);
-    FixedPoint_Multiply mult2 (add_c00c10_im, FP_INV_SQRT2, h_c00_im);
-    FixedPoint_Multiply mult3 (sub_c00c10_re, FP_INV_SQRT2, h_c10_re);
-    FixedPoint_Multiply mult4 (sub_c00c10_im, FP_INV_SQRT2, h_c10_im);
-    FixedPoint_Multiply mult5 (add_c01c11_re, FP_INV_SQRT2, h_c01_re);
-    FixedPoint_Multiply mult6 (add_c01c11_im, FP_INV_SQRT2, h_c01_im);
-    FixedPoint_Multiply mult7 (sub_c01c11_re, FP_INV_SQRT2, h_c11_re);
-    FixedPoint_Multiply mult8 (sub_c01c11_im, FP_INV_SQRT2, h_c11_im);
+    FixedPoint_Multiply mult1 (.A(add_c00c10_re), .B(FP_INV_SQRT2), .result(h_c00_re));
+    FixedPoint_Multiply mult2 (.A(add_c00c10_im), .B(FP_INV_SQRT2), .result(h_c00_im));
+    FixedPoint_Multiply mult3 (.A(sub_c00c10_re), .B(FP_INV_SQRT2), .result(h_c10_re));
+    FixedPoint_Multiply mult4 (.A(sub_c00c10_im), .B(FP_INV_SQRT2), .result(h_c10_im));
+    FixedPoint_Multiply mult5 (.A(add_c01c11_re), .B(FP_INV_SQRT2), .result(h_c01_re));
+    FixedPoint_Multiply mult6 (.A(add_c01c11_im), .B(FP_INV_SQRT2), .result(h_c01_im));
+    FixedPoint_Multiply mult7 (.A(sub_c01c11_re), .B(FP_INV_SQRT2), .result(h_c11_re));
+    FixedPoint_Multiply mult8 (.A(sub_c01c11_im), .B(FP_INV_SQRT2), .result(h_c11_im));
 
     // Stage 2: Apply CNOT
     assign cnot_c00_re = h_c00_re;
@@ -115,22 +120,34 @@ module Quantum_Circuit (
     assign cnot_c11_im = h_c10_im;
 
     // Next state assignments based on current state
+    // apply CNOT when in S_CNOT. Otherwise hold current registers.
     assign c00_re_next = (state == S_HADAMARD) ? h_c00_re :
-                        (state == S_CNOT) ? cnot_c00_re : c00_re_reg;
+                         (state == S_CNOT)     ? cnot_c00_re :
+                                                 c00_re_reg;
     assign c00_im_next = (state == S_HADAMARD) ? h_c00_im :
-                        (state == S_CNOT) ? cnot_c00_im : c00_im_reg;
+                         (state == S_CNOT)     ? cnot_c00_im :
+                                                 c00_im_reg;
+
     assign c01_re_next = (state == S_HADAMARD) ? h_c01_re :
-                        (state == S_CNOT) ? cnot_c01_re : c01_re_reg;
+                         (state == S_CNOT)     ? cnot_c01_re :
+                                                 c01_re_reg;
     assign c01_im_next = (state == S_HADAMARD) ? h_c01_im :
-                        (state == S_CNOT) ? cnot_c01_im : c01_im_reg;
+                         (state == S_CNOT)     ? cnot_c01_im :
+                                                 c01_im_reg;
+
     assign c10_re_next = (state == S_HADAMARD) ? h_c10_re :
-                        (state == S_CNOT) ? cnot_c10_re : c10_re_reg;
+                         (state == S_CNOT)     ? cnot_c10_re :
+                                                 c10_re_reg;
     assign c10_im_next = (state == S_HADAMARD) ? h_c10_im :
-                        (state == S_CNOT) ? cnot_c10_im : c10_im_reg;
+                         (state == S_CNOT)     ? cnot_c10_im :
+                                                 c10_im_reg;
+
     assign c11_re_next = (state == S_HADAMARD) ? h_c11_re :
-                        (state == S_CNOT) ? cnot_c11_re : c11_re_reg;
+                         (state == S_CNOT)     ? cnot_c11_re :
+                                                 c11_re_reg;
     assign c11_im_next = (state == S_HADAMARD) ? h_c11_im :
-                        (state == S_CNOT) ? cnot_c11_im : c11_im_reg;
+                         (state == S_CNOT)     ? cnot_c11_im :
+                                                 c11_im_reg;
 
     // Final outputs
     assign final_c00_re = c00_re_reg;

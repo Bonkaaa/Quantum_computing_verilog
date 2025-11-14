@@ -135,4 +135,4 @@ endmodule
 // 6. So sánh kết quả đầu ra với kết quả mong đợi và hiển thị thông báo PASS/FAIL tương ứng
 // 7. Kết thúc quá trình kiểm tra sau khi hoàn thành tất cả các trường hợp kiểm tra
 
-// Run cmd: powershell -ExecutionPolicy Bypass -File .\scripts\run_x_gate_tb.ps1
+// Run cmd: powershell -ExecutionPolicy Bypass -File .\scripts\run_x_gate_test.ps1

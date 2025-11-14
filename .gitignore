@@ -1,3 +1,4 @@
 circuit_test
 h_gate_test
 x_gate_test
+circuit_tb.vcd

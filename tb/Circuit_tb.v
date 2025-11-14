@@ -4,6 +4,12 @@
 
 module Circuit_tb;
 
+    initial begin
+    $dumpfile("circuit_tb.vcd");
+    $dumpvars(0, Circuit_tb);
+    end
+
+
     // Constants for fixed-point representation
     localparam FP_ZERO = 16'h0000; // Fixed-point representation of 0.0
     localparam FP_ONE = 16'h0100; // Fixed-point representation of 1.0
@@ -46,14 +52,15 @@ module Circuit_tb;
         $display("Starting Circuit Testbench...");
         reset = 1;
         start = 0;
-        #15 reset = 0;
+        repeat (2) @(posedge clk);
+        reset = 0;
 
         $display("Idle State: ", $time);
         $display("   c00=(%h,%h), c01=(%h,%h), c10=(%h,%h), c11=(%h,%h)",
                  c00_re, c00_im, c01_re, c01_im, c10_re, c10_im, c11_re, c11_im); 
-        
+             
         // Check initial state |00>
-        if (c00_re != FP_ONE || c10_re != FP_ZERO || c11_re != FP_ZERO)
+        if (c00_re != FP_ONE || c01_re != FP_ZERO || c10_re != FP_ZERO || c11_re != FP_ZERO)
             $display("[FAIL] Initial state incorrect");
 
         #10;
@@ -61,22 +68,29 @@ module Circuit_tb;
         // Start the circuit
         start = 1;
         @(posedge clk);
+        start = 0;
 
         // Clock Cycle 1 (Apply Hadamard)
         @(posedge clk); 
+        #1;
+
         // FSM now in S_HADAMARD, registers updated after Hadamard
         $display("\n@ T=%0t: After H-gate (Immediate State)", $time);
         $display("   c00=(%h,%h), c01=(%h,%h), c10=(%h,%h), c11=(%h,%h)",
                  c00_re, c00_im, c01_re, c01_im, c10_re, c10_im, c11_re, c11_im);
+        $display("%h %h %h %h %h %h %h %h",
+         c00_re, c00_im, c01_re, c01_im, c10_re, c10_im, c11_re, c11_im);
                  
         // Expected: (1/sqrt(2)) * (|00> + |10>)
-        if (c00_re != FP_SQRT_HALF_POS || c10_re != FP_SQRT_HALF_POS || c11_re != FP_ZERO)
-            $display("[FAIL] H-Gate state incorrect");
+        if (c00_re != FP_SQRT_HALF_POS || c01_re != FP_ZERO || c10_re != FP_SQRT_HALF_POS || c11_re != FP_ZERO)
+            $display("   [FAIL] H-Gate state incorrect");
         else
             $display("   [CHECK] H-Gate applied correctly");
             
         // Clock Cycle 2 (Apply CNOT)
+        @(posedge clk);
         @(posedge clk); 
+        #1;
         // FSM now in S_CNOT, registers updated after CNOT
         $display("\n@ T=%0t: After CNOT-Gate (Bell State)", $time);
         $display("   c00=(%h,%h), c01=(%h,%h), c10=(%h,%h), c11=(%h,%h)",
@@ -90,6 +104,10 @@ module Circuit_tb;
             $display("   [PASS] Initial Bell state created successfully!");
         else
             $display("   [FAIL] Bell state incorrect");
+
+        @(posedge clk); 
+        // FSM now in S_DONE
+
 
         // 5. Kết thúc
         #10;
@@ -110,5 +128,5 @@ endmodule
 // 5. So sánh trạng thái đầu ra với trạng thái Bell mong đợi và in kết quả kiểm tra
 // 6. Kết thúc
 
-// Run cmd: powershell -ExecutionPolicy Bypass -File .\scripts\run_circuit_tb.ps1
+// Run cmd: powershell -ExecutionPolicy Bypass -File .\scripts\run_circuit_test.ps1
 
