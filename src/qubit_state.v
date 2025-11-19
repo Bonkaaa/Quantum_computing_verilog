@@ -18,7 +18,7 @@ module Qubit_State (
     input wire reset,
 
     // Update state
-    input wire update_en
+    input wire update_en,
 
     // New state
     input wire [15:0] new_alpha_re, // New real part of alpha
@@ -37,7 +37,7 @@ module Qubit_State (
     localparam FP_ZERO = 16'h0000; // Fixed-point representation of 0.0
     localparam FP_ONE  = 16'h0100; // Fixed-point representation of 1.0
 
-    alawys @(posedge clk or posedge reset) begin
+    always @(posedge clk or posedge reset) begin
         if (reset) begin
             // On reset, initialize to |0> state
             alpha_re <= FP_ONE;  // alpha = 1 + 0i

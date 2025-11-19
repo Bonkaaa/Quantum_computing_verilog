@@ -13,14 +13,14 @@ Thay vì mô phỏng vật lý lượng tử thực tế, project này tập tru
 
 ## 📂 Cấu trúc Repository
 ```plaintext
-Quantum_Gates_Verilog/
+Quantum_computing_verilog/
 ├── src/
 │   ├── FixedPoint_Add.v      # Module cộng/trừ số Fixed-Point
 │   ├── FixedPoint_Multiply.v # Module nhân số Fixed-Point
-│   ├── Qubit_State.v         # Thanh ghi lưu trạng thái Qubit (logic tuần tự)
+│   ├── qubit_state.v         # Thanh ghi lưu trạng thái Qubit (logic tuần tự)
 │   ├── H_Gate.v              # Module cổng Hadamard
 │   ├── X_Gate.v              # Module cổng Pauli-X (NOT)
-│   ├── CNOT_Gate.v           # Module cổng CNOT
+│   ├── CNOT_Gate.v           # Module cổng CNOT (2-qubit gate)
 │   └── Quantum_Circuit.v     # Mạch cấp cao (tạo Trạng thái Bell)
 ├── tb/
 │   ├── H_Gate_tb.v           # Testbench cho cổng H
@@ -44,11 +44,109 @@ Quantum_Gates_Verilog/
 
 Tất cả các lệnh biên dịch và chạy đã được đóng gói trong các tệp PowerShell trong thư mục `scripts/`.
 
-1.  Mở **PowerShell**.
-2.  Di chuyển đến thư mục gốc của dự án.
-3.  Trong các file, đã có hướng dẫn chạy cmd rõ ràng ở cuối file.
+### Test Hadamard Gate (H_Gate)
+```powershell
+cd <thư_mục_dự_án>
+.\scripts\run_h_gate_test.ps1
+```
 
+### Test Pauli-X Gate (X_Gate)
+```powershell
+cd <thư_mục_dự_án>
+.\scripts\run_x_gate_test.ps1
+```
 
+### Test Quantum Circuit (Bell State)
+```powershell
+cd <thư_mục_dự_án>
+.\scripts\run_circuit_test.ps1
+```
 
+**Lưu ý:** Các script tự động tìm kiếm `iverilog` và `vvp` trong PATH hoặc tại đường dẫn mặc định `C:\iverilog\bin\`.
 
+## 📊 Chi tiết các Module
+
+### 1. **FixedPoint_Add.v**
+Module thực hiện phép cộng/trừ số Fixed-Point (Q8.8):
+- **Input:** Hai số 16-bit (A, B) và cờ điều khiển `sub_en`
+- **Output:** Kết quả phép cộng hoặc trừ
+- **Chức năng:** 
+  - `sub_en = 0`: Thực hiện A - B (phép trừ)
+  - `sub_en = 1`: Thực hiện A + B (phép cộng)
+
+### 2. **FixedPoint_Multiply.v**
+Module thực hiện phép nhân số Fixed-Point:
+- **Input:** Hai số 16-bit (A, B)
+- **Output:** Kết quả phép nhân (16-bit)
+- **Cơ chế:** Nhân đầy đủ 32-bit rồi điều chỉnh lại định dạng Q8.8
+
+### 3. **qubit_state.v**
+Module thanh ghi trạng thái Qubit với logic tuần tự:
+- **Input:** Clock, reset, update_en, trạng thái mới (alpha, beta)
+- **Output:** Trạng thái hiện tại của qubit
+- **Chức năng:** Lưu trữ và cập nhật trạng thái qubit khi có tín hiệu `update_en`
+
+### 4. **H_Gate.v (Hadamard Gate)**
+Cổng Hadamard tạo superposition:
+- **Ma trận:** `H = 1/√2 * [[1, 1], [1, -1]]`
+- **Chức năng:** Biến đổi trạng thái qubit từ basis state sang superposition
+- **Ví dụ:** `|0⟩ → (|0⟩ + |1⟩)/√2`, `|1⟩ → (|0⟩ - |1⟩)/√2`
+
+### 5. **X_Gate.v (Pauli-X Gate)**
+Cổng NOT lượng tử:
+- **Ma trận:** `X = [[0, 1], [1, 0]]`
+- **Chức năng:** Đảo ngược trạng thái qubit
+- **Ví dụ:** `|0⟩ → |1⟩`, `|1⟩ → |0⟩`
+
+### 6. **CNOT_Gate.v (Controlled-NOT Gate)**
+Cổng 2-qubit với qubit điều khiển và qubit mục tiêu:
+- **Ma trận:** `CNOT = [[1,0,0,0], [0,1,0,0], [0,0,0,1], [0,0,1,0]]`
+- **Chức năng:** 
+  - Nếu control qubit = `|0⟩`: Target qubit không đổi
+  - Nếu control qubit = `|1⟩`: Target qubit bị đảo (áp dụng X gate)
+- **Basis states:** `|00⟩, |01⟩, |10⟩, |11⟩`
+
+### 7. **Quantum_Circuit.v (Bell State Circuit)**
+Mạch tạo trạng thái Bell (entangled state):
+- **Sequence:** 
+  1. Khởi tạo: `|00⟩`
+  2. Áp dụng H gate trên qubit 0: `(|00⟩ + |10⟩)/√2`
+  3. Áp dụng CNOT gate: `(|00⟩ + |11⟩)/√2` (Bell state)
+- **FSM:** Sử dụng máy trạng thái hữu hạn để điều khiển tuần tự
+- **States:** S_INIT → S_HADAMARD → S_CNOT → S_DONE
+
+## 🔬 Kết quả Mô phỏng
+
+Sau khi chạy các testbench, kết quả được hiển thị dưới dạng số Fixed-Point (hex):
+- `0x0100` = 1.0 (256/256)
+- `0x00B5` ≈ 0.707 (181/256) ≈ 1/√2
+- `0x0000` = 0.0
+
+Kết quả cũng có thể được xem bằng công cụ waveform viewer như GTKWave với file `.vcd` được tạo ra.
+
+## 🎯 Mục đích Học tập
+
+Project này giúp hiểu:
+1. Cách biểu diễn khái niệm lượng tử bằng đại số tuyến tính
+2. Kỹ thuật Fixed-Point arithmetic trong thiết kế phần cứng
+3. Cấu trúc module và testbench trong Verilog
+4. Máy trạng thái hữu hạn (FSM) trong thiết kế số
+5. Các cổng lượng tử cơ bản: H, X, CNOT
+6. Khái niệm entanglement qua Bell State
+
+## 📝 Ghi chú
+
+- **Độ chính xác:** Sử dụng Q8.8 (8-bit fractional) có độ chính xác giới hạn (~0.004)
+- **Tổng hợp (Synthesis):** Module này có thể được tổng hợp thành phần cứng thực (FPGA/ASIC)
+- **Mở rộng:** Có thể mở rộng để hỗ trợ nhiều qubit hơn và các cổng phức tạp hơn
+
+## 🤝 Đóng góp
+
+Đây là project học tập. Mọi góp ý và cải tiến đều được hoan nghênh!
+
+## 📚 Tài liệu Tham khảo
+
+- [Quantum Computing for Computer Scientists](https://www.cambridge.org/core/books/quantum-computing-for-computer-scientists/8AEA723BEE5CC9F5C03FDD4BA850C711)
+- [Verilog HDL: A Guide to Digital Design and Synthesis](https://www.amazon.com/Verilog-HDL-Guide-Digital-Synthesis/dp/0130449113)
+- [Fixed-Point Arithmetic in Verilog](https://zipcpu.com/dsp/2017/07/21/bit-growth.html)
 
