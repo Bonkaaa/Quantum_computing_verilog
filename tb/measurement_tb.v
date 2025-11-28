@@ -8,10 +8,10 @@ module Measurement_tb;
     localparam FP_ONE = 16'h0100; // Fixed-point representation of 1.0
 
     // Test input qubit state
-    localparam FP_A_RE = 16'h2D41;
+    localparam FP_A_RE = 16'h00B5; 
     localparam FP_A_IM = 16'h0000;
-    localparam FP_B_RE = 16'h2D41;
-    localparam FP_B_IM = 16'h0000; 
+    localparam FP_B_RE = 16'h00B5;
+    localparam FP_B_IM = 16'h0000;
 
     // Clock and reset
     reg clk;
@@ -56,15 +56,15 @@ module Measurement_tb;
         // SỬA: Dùng %f cho số thực và dùng đúng tên biến p0, p1
         $display("Output Raw (Q1.14): P(0) = %d, P(1) = %d", p0, p1);
         $display("Output Real       : P(0) = %f, P(1) = %f", 
-                 $itor(p0)/16384.0, 
-                 $itor(p1)/16384.0);
+                 $itor(p0)/256.0, 
+                 $itor(p1)/256.0);
         $display("--------------------------------------------------");
 
         // Kiểm tra tổng xác suất (nên gần bằng 1.0)
-        if (p0 + p1 > 16380 && p0 + p1 < 16390) 
+        if (p0 + p1 > 250 && p0 + p1 < 260) 
             $display("TEST PASSED: Total probability is approx 1.0");
         else
-            $display("TEST FAILED: Total probability is %f", $itor(p0 + p1)/16384.0);
+            $display("TEST FAILED: Total probability is %f", $itor(p0 + p1)/256.0);
 
         $finish;
     end

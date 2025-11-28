@@ -21,10 +21,10 @@ module Measurement(
     wire signed [31:0] beta_im_sq  = beta_im * beta_im;
 
     // Convert back to Q1.14
-    wire signed [31:0] alpha_re_sq_q14 = alpha_re_sq >>> 14;
-    wire signed [31:0] alpha_im_sq_q14 = alpha_im_sq >>> 14;
-    wire signed [31:0] beta_re_sq_q14  = beta_re_sq  >>> 14;
-    wire signed [31:0] beta_im_sq_q14  = beta_im_sq  >>> 14;
+    wire signed [31:0] alpha_re_sq_q14 = alpha_re_sq >>> 8;
+    wire signed [31:0] alpha_im_sq_q14 = alpha_im_sq >>> 8;
+    wire signed [31:0] beta_re_sq_q14  = beta_re_sq  >>> 8;
+    wire signed [31:0] beta_im_sq_q14  = beta_im_sq  >>> 8;
 
     // Calculate probabilities
     assign prob_0 = alpha_re_sq_q14 + alpha_im_sq_q14; // P(0) = |alpha|^2

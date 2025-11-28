@@ -16,6 +16,11 @@ module Quantum_Circuit (
     output wire signed [15:0] final_c10_im,
     output wire signed [15:0] final_c11_re,
     output wire signed [15:0] final_c11_im
+
+    output wire signed [31:0] prob_00,
+    output wire signed [31:0] prob_01,
+    output wire signed [31:0] prob_10,
+    output wire signed [31:0] prob_11
 );
 
     // Constants for initial states
@@ -159,6 +164,23 @@ module Quantum_Circuit (
     assign final_c11_re = c11_re_reg;
     assign final_c11_im = c11_im_reg;
 
+    // Measurement module
+    // (00, 01)
+    Measurement measure_q0 (
+        .alpha_re(c00_re_reg), .alpha_im(c00_im_reg),
+        .beta_re(c01_re_reg),  .beta_im(c01_im_reg),
+        .prob_0(prob_00),
+        .prob_1(prob_01)
+    );
+    // (10, 11)
+    Measurement measure_q1 (
+        .alpha_re(c10_re_reg), .alpha_im(c10_im_reg),
+        .beta_re(c11_re_reg),  .beta_im(c11_im_reg),
+        .prob_0(prob_10),
+        .prob_1(prob_11)
+    );
+
+
 endmodule
 
 
@@ -167,4 +189,9 @@ endmodule
 // 2. Sử dụng FSM để điều khiển tuần tự các bước: khởi tạo, áp dụng cổng Hadamard, áp dụng cổng CNOT
 // 3. Sử dụng các thanh ghi để lưu trữ trạng thái của hai qubit
 // 4. Kết quả cuối cùng là trạng thái của hai qubit sau khi áp dụng các cổng lượng tử
+
+// Quantum Circuit Module (Q8.8 Version)
+// Tích hợp Measurement để xuất ra xác suất
+
+
 

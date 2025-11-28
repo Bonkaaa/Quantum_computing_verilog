@@ -5,6 +5,7 @@ $out  = Join-Path $root 'circuit_test'
 $tb   = Join-Path $root 'tb\Circuit_tb.v'
 $srcs = @(
   (Join-Path $root 'src\Quantum_Circuit.v'),
+  (Join-Path $root 'src\measurement.v'),      # <-- Đã thêm file này
   (Join-Path $root 'src\FixedPoint_Add.v'),
   (Join-Path $root 'src\FixedPoint_Multiply.v')
 )
