@@ -2,3 +2,7 @@ circuit_test
 h_gate_test
 x_gate_test
 circuit_tb.vcd
+y_gate_test
+z_gate_test
+cnot_test
+measurement_test

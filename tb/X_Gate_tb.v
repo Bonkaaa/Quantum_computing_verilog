@@ -61,6 +61,8 @@ module X_Gate_tb;
         tb_beta_in_im  <= FP_ZERO;
         #10 reset = 0;
 
+        $display("-------------------------------");
+
         // Test Case 1: Input |0> state
         $display("Test Case 1: Input |0> state");
         tb_alpha_in_re <= FP_ONE;  // |0> state
@@ -77,6 +79,8 @@ module X_Gate_tb;
         end else begin
             $display("  FAIL: Unexpected output for |0> input");
         end
+
+        $display("-------------------------------");
 
         // Test Case 2: Input |1> state
         $display("Test Case 2: Input |1> state");
@@ -98,6 +102,8 @@ module X_Gate_tb;
             $display("  FAIL: Unexpected output for |1> input");
         end
 
+        $display("-------------------------------");
+
         // Test Case 3: Input complex state
         $display("Test Case 3: Input complex state");
         tb_alpha_in_re <= FP_A_RE;
@@ -117,6 +123,8 @@ module X_Gate_tb;
         end else begin
             $display("  FAIL: Unexpected output for complex input");
         end
+
+        $display("-------------------------------");
 
         // End of test
         #10;

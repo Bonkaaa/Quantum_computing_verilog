@@ -85,6 +85,8 @@ module CNOT_tb;
         tb_c11_in_im <= FP_ZERO;
         #10 reset = 0;
 
+        $display("  -------------------------------");
+
         // Test Case 1: Input arbitrary state
         $display("Test Case 1: Input arbitrary state");
         tb_c00_in_re <= FP_C00_RE;  
@@ -100,11 +102,22 @@ module CNOT_tb;
         // Expected Output: CNOT operation
         $display("  INPUT:  c00 = %h + %hi, c01 = %h + %hi, c10 = %h + %hi, c11 = %h + %hi",
                  tb_c00_in_re, tb_c00_in_im, tb_c01_in_re, tb_c01_in_im,
-                 tb_c10_in_re, tb_c10_in_im, tb_c11_in_re, tb_c11_in_im);
+                 tb_c10_in_re, tb_c10_in_im, tb_c11_in_re, tb_c11_in_im);            
         $display("  OUTPUT: c00 = %h + %hi, c01 = %h + %hi, c10 = %h + %hi, c11 = %h + %hi",
                  tb_c00_out_re, tb_c00_out_im, tb_c01_out_re, tb_c01_out_im,
                  tb_c10_out_re, tb_c10_out_im, tb_c11_out_re, tb_c11_out_im);
+        
+        if (tb_c00_out_re == FP_C00_RE && tb_c00_out_im == FP_C00_IM &&
+            tb_c01_out_re == FP_C01_RE && tb_c01_out_im == FP_C01_IM &&
+            tb_c10_out_re == FP_C11_RE && tb_c10_out_im == FP_C11_IM &&
+            tb_c11_out_re == FP_C10_RE && tb_c11_out_im == FP_C10_IM) begin
+            $display("  Test Case 1 Passed!");
+        end else begin
+            $display("  Test Case 1 Failed!");
+        end
 
+        $display("  -------------------------------");
+        
         // Add more test cases as needed
 
         $display("CNOT Gate Testbench Completed.");

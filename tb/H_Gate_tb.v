@@ -58,6 +58,8 @@ module H_Gate_tb;
         tb_beta_in_im  <= FP_ZERO;
         #10 reset = 0;
 
+        $display("  -------------------------------");
+
         // Test Case 1: Input |0> state
         $display("Test Case 1: Input |0> state");
         tb_alpha_in_re <= FP_ONE;  // |0> state
@@ -75,6 +77,8 @@ module H_Gate_tb;
         end else begin
             $display("  [FAIL] Test H|0> failed!");
         end
+
+        $display("  -------------------------------");
 
         // Test Case 2: Input |1> state
         $display("Test Case 2: Input |1> state");
@@ -94,6 +98,8 @@ module H_Gate_tb;
         end else begin
             $display("  [FAIL] Test H|1> failed! Expected beta_re: %h", FP_SQRT_HALF_NEG);
         end
+
+        $display("-------------------------------");
 
         // End
         #10;
