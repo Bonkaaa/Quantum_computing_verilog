@@ -9,7 +9,7 @@ Thay vì mô phỏng vật lý lượng tử thực tế, project này tập tru
 * **Biểu diễn Qubit:** Trạng thái của một qubit ($\alpha$ và $\beta$) được biểu diễn bằng hai **số phức**.
 * **Số học Dấu chấm Cố định (Fixed-Point):** Để có thể tổng hợp (synthesizable) và mô phỏng hiệu quả, các số phức này được biểu diễn bằng các thanh ghi 16-bit (dưới dạng `signed [15:0]`).
     * **Định dạng:** Q8.8 (8 bit cho phần nguyên, 8 bit cho phần thập phân).
-* **Cổng Lượng tử:** Mỗi cổng (`H_Gate`, `X_Gate`) là một module Verilog tổ hợp (combinational) thực hiện phép nhân ma trận tương ứng.
+* **Cổng Lượng tử:** Mỗi cổng (`H_Gate`, `X_Gate`, `Y_Gate`, `Z_Gate`, `CNOT_Gate`) là một module Verilog tổ hợp (combinational) thực hiện phép nhân ma trận tương ứng.
 
 ## 📂 Cấu trúc Repository
 ```plaintext
@@ -20,15 +20,26 @@ Quantum_computing_verilog/
 │   ├── qubit_state.v         # Thanh ghi lưu trạng thái Qubit (logic tuần tự)
 │   ├── H_Gate.v              # Module cổng Hadamard
 │   ├── X_Gate.v              # Module cổng Pauli-X (NOT)
+│   ├── Y_Gate.v              # Module cổng Pauli-Y
+│   ├── Z_Gate.v              # Module cổng Pauli-Z
 │   ├── CNOT_Gate.v           # Module cổng CNOT (2-qubit gate)
+│   ├── measurement.v         # Module tính xác suất đo lường
 │   └── Quantum_Circuit.v     # Mạch cấp cao (tạo Trạng thái Bell)
 ├── tb/
 │   ├── H_Gate_tb.v           # Testbench cho cổng H
 │   ├── X_Gate_tb.v           # Testbench cho cổng X
+│   ├── Y_Gate_tb.v           # Testbench cho cổng Y
+│   ├── Z_Gate_tb.v           # Testbench cho cổng Z
+│   ├── CNOT_tb.v             # Testbench cho cổng CNOT
+│   ├── measurement_tb.v      # Testbench cho module đo lường
 │   └── Circuit_tb.v          # Testbench cho mạch Trạng thái Bell
 ├── scripts/
 │   ├── run_h_gate_test.ps1   # Script chạy test H_Gate
 │   ├── run_x_gate_test.ps1   # Script chạy test X_Gate
+│   ├── run_y_gate_test.ps1   # Script chạy test Y_Gate
+│   ├── run_z_gate_test.ps1   # Script chạy test Z_Gate
+│   ├── run_cnot_test.ps1     # Script chạy test CNOT_Gate
+│   ├── run_measurement_test.ps1 # Script chạy test measurement
 │   └── run_circuit_test.ps1  # Script chạy test mạch chính
 └── README.md                 # File này
 ```
@@ -54,6 +65,30 @@ cd <thư_mục_dự_án>
 ```powershell
 cd <thư_mục_dự_án>
 .\scripts\run_x_gate_test.ps1
+```
+
+### Test Pauli-Y Gate (Y_Gate)
+```powershell
+cd <thư_mục_dự_án>
+.\scripts\run_y_gate_test.ps1
+```
+
+### Test Pauli-Z Gate (Z_Gate)
+```powershell
+cd <thư_mục_dự_án>
+.\scripts\run_z_gate_test.ps1
+```
+
+### Test CNOT Gate
+```powershell
+cd <thư_mục_dự_án>
+.\scripts\run_cnot_test.ps1
+```
+
+### Test Measurement Module
+```powershell
+cd <thư_mục_dự_án>
+.\scripts\run_measurement_test.ps1
 ```
 
 ### Test Quantum Circuit (Bell State)
@@ -98,7 +133,19 @@ Cổng NOT lượng tử:
 - **Chức năng:** Đảo ngược trạng thái qubit
 - **Ví dụ:** `|0⟩ → |1⟩`, `|1⟩ → |0⟩`
 
-### 6. **CNOT_Gate.v (Controlled-NOT Gate)**
+### 6. **Y_Gate.v (Pauli-Y Gate)**
+Cổng Y lượng tử với pha ±90 độ:
+- **Ma trận:** `Y = [[0, -i], [i, 0]]`
+- **Chức năng:** Áp dụng pha ±90 độ (nhân với ±i) cho trạng thái qubit
+- **Ví dụ:** `|0⟩ → i|1⟩`, `|1⟩ → -i|0⟩`
+
+### 7. **Z_Gate.v (Pauli-Z Gate)**
+Cổng Z lượng tử với pha 180 độ:
+- **Ma trận:** `Z = [[1, 0], [0, -1]]`
+- **Chức năng:** Giữ nguyên |0⟩, đảo dấu |1⟩
+- **Ví dụ:** `|0⟩ → |0⟩`, `|1⟩ → -|1⟩`
+
+### 8. **CNOT_Gate.v (Controlled-NOT Gate)**
 Cổng 2-qubit với qubit điều khiển và qubit mục tiêu:
 - **Ma trận:** `CNOT = [[1,0,0,0], [0,1,0,0], [0,0,0,1], [0,0,1,0]]`
 - **Chức năng:** 
@@ -106,7 +153,16 @@ Cổng 2-qubit với qubit điều khiển và qubit mục tiêu:
   - Nếu control qubit = `|1⟩`: Target qubit bị đảo (áp dụng X gate)
 - **Basis states:** `|00⟩, |01⟩, |10⟩, |11⟩`
 
-### 7. **Quantum_Circuit.v (Bell State Circuit)**
+### 9. **measurement.v (Measurement Module)**
+Module tính xác suất đo lường qubit:
+- **Input:** Trạng thái qubit (alpha, beta) dưới dạng số phức
+- **Output:** Xác suất đo được |0⟩ (P0) và |1⟩ (P1)
+- **Công thức:** 
+  - `P(0) = |alpha|² = alpha_re² + alpha_im²`
+  - `P(1) = |beta|² = beta_re² + beta_im²`
+- **Lưu ý:** Tổng P(0) + P(1) phải bằng 1.0
+
+### 10. **Quantum_Circuit.v (Bell State Circuit)**
 Mạch tạo trạng thái Bell (entangled state):
 - **Sequence:** 
   1. Khởi tạo: `|00⟩`
@@ -131,8 +187,9 @@ Project này giúp hiểu:
 2. Kỹ thuật Fixed-Point arithmetic trong thiết kế phần cứng
 3. Cấu trúc module và testbench trong Verilog
 4. Máy trạng thái hữu hạn (FSM) trong thiết kế số
-5. Các cổng lượng tử cơ bản: H, X, CNOT
+5. Các cổng lượng tử cơ bản: H, X, Y, Z, CNOT
 6. Khái niệm entanglement qua Bell State
+7. Cách tính xác suất đo lường qubit
 
 ## 📝 Ghi chú
 
